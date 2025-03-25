@@ -10,13 +10,42 @@
 
 <b>New Customer Form to test POST request to save data to MongoDB collection customers /readNameAndRespond</b>
 <br/>
-<form action="/saveNewCustomer" method="post">
+<form id="customerForm">
 
-  Name: <input type="text" name="name"> </input>
+  Name: <input type="text" name="name" id="name"> </input>
   <br/>
-  Email: <input type="text" name="email"> </input>
+  Email: <input type="text" name="email" id="email"> </input>
   <br/>
   <input type="submit" value="Go"/>
 </form>
+<a href="/users"><button>View All Users</button></a>
+
+<script>
+  const form = document.getElementById("customerForm");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+
+    try {
+      const res = await fetch("/saveNewCustomer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name, email })
+      });
+
+      const message = await res.text();
+
+      window.location.href = "/saveNewCustomer?message=" + encodeURIComponent(message);
+
+    } catch (err) {
+      console.error(err);
+      alert("Network or server error.");
+    }
+  });
+</script>
 </body>
 </html>

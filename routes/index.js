@@ -20,5 +20,10 @@ router.get('/', function(req, res, next) {
 
 var controllerDatabase = require('../controllers/database');   //this will load the controller file below
 router.post("/saveNewCustomer", controllerDatabase.saveNewCustomer); //see controllers/database.js file
+router.get("/saveNewCustomer", (req, res) => {
+  const message = req.query.message;
+  res.render("saveNewCustomer", { message });
+});
+
 
 module.exports = router;

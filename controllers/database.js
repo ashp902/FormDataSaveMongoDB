@@ -23,7 +23,7 @@ const client = new MongoClient(uri, {
 });
 
 /* STEP 2: Controller function to save New customer data to the collection customers. */
-module.exports.saveNewCustomer =  function(req, res, next) {
+module.exports.saveNewCustomer = async function(req, res, next) {
 
     //step 2.1 Read in the incomming form data for the customer: name, email
     //expecting data variable called name --retrieve value using body-parser
@@ -36,11 +36,15 @@ module.exports.saveNewCustomer =  function(req, res, next) {
     console.log("NEW Customer Data  " + value_name + "  email: " + value_email);
 
     //step 2.2 Call the function defined below that will connect to your MongDB collection and create a new customer
-    saveCustomerToMongoDB(value_name, value_email);
+    const wasInserted = await saveCustomerToMongoDB(value_name, value_email);
 
-    //step 2.3 Send a response welcoming the new user
-    res.send("Welcome,  " + value_name + "</br> We will reach you at: " + value_email);
+    console.log(wasInserted);
 
+    if(!wasInserted) {
+        res.send(`Customer with email ${value_email} already exists.`);
+    } else {
+        res.send("Welcome,  " + value_name + "</br> We will reach you at: " + value_email);
+    }
 };
 
 
@@ -74,10 +78,18 @@ async function saveCustomerToMongoDB(name, email) {
         console.log(" # documents in it " + await customersCollection.countDocuments());
 
         //STEP E: insert the new customer and display in console the new # documents in customers
-        console.log("Insert new customer");
-        await customersCollection.insertOne({"name": name, "email": email });
-        console.log("  # documnents now = " + await customersCollection.countDocuments());
+        const existingCustomer = await customersCollection.findOne({ email: email });
 
+        if(existingCustomer) {
+            console.log(`Customer with email ${email} already exists. Skipping insert.`);
+            return false;
+        }
+        else {
+            console.log("Insert new customer");
+            await customersCollection.insertOne({"name": name, "email": email });
+            console.log("  # documnents now = " + await customersCollection.countDocuments());
+            return true;
+        }
 
     } finally {
     // STEP F: Ensures that the client will close when you finish/error
